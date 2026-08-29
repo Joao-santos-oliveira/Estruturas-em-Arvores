@@ -96,6 +96,26 @@ private:
         delete no;
     }
 
+    void exportarJSONAux(NoBST<T>* no, std::stringstream& ss) const {
+        if (!no) {
+            ss << "null";
+            return;
+        }
+        ss << "{";
+        ss << "\"id\":" << no->id << ",";
+        ss << "\"chave\":" << no->chave << ",";
+        ss << "\"esq\":";
+        exportarJSONAux(no->esq, ss);
+        ss << ",\"dir\":";
+        exportarJSONAux(no->dir, ss);
+        ss << "}";
+    }
+
+    int calcularAlturaAux(NoBST<T>* no) const {
+        if (!no) return 0;
+        return 1 + std::max(calcularAlturaAux(no->esq), calcularAlturaAux(no->dir));
+    }
+
 public:
     BST() : raiz(nullptr), contadorNos(0), totalElementos(0), totalComparacoes(0) {}
 
@@ -126,12 +146,26 @@ public:
         return totalElementos;
     }
 
+    int height() const {
+        return calcularAlturaAux(raiz);
+    }
+
     unsigned long long getComparisonCount() const {
         return totalComparacoes;
     }
 
     void resetMetrics() {
         totalComparacoes = 0;
+    }
+
+    std::string exportarJSON() const {
+        std::stringstream ss;
+        ss << "{\"tipo\":\"BST\",\"totalElementos\":" << totalElementos 
+           << ",\"altura\":" << height()
+           << ",\"comparacoes\":" << totalComparacoes << ",\"arvore\":";
+        exportarJSONAux(raiz, ss);
+        ss << "}";
+        return ss.str();
     }
 };
 

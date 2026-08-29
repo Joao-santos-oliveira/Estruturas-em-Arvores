@@ -88,23 +88,16 @@ private:
         atualizarAltura(no);
         int fb = getFatorBalanceamento(no);
 
-        // Caso Esquerda-Esquerda
         if (fb > 1 && chave < no->esq->chave) {
             return rotacionarDir(no);
         }
-
-        // Caso Direita-Direita
         if (fb < -1 && chave > no->dir->chave) {
             return rotacionarEsq(no);
         }
-
-        // Caso Esquerda-Direita
         if (fb > 1 && chave > no->esq->chave) {
             no->esq = rotacionarEsq(no->esq);
             return rotacionarDir(no);
         }
-
-        // Caso Direita-Esquerda
         if (fb < -1 && chave < no->dir->chave) {
             no->dir = rotacionarDir(no->dir);
             return rotacionarEsq(no);
@@ -184,6 +177,23 @@ private:
         delete no;
     }
 
+    void exportarJSONAux(NoAVL<T>* no, std::stringstream& ss) const {
+        if (!no) {
+            ss << "null";
+            return;
+        }
+        ss << "{";
+        ss << "\"id\":" << no->id << ",";
+        ss << "\"chave\":" << no->chave << ",";
+        ss << "\"altura\":" << no->altura << ",";
+        ss << "\"fb\":" << getFatorBalanceamento(no) << ",";
+        ss << "\"esq\":";
+        exportarJSONAux(no->esq, ss);
+        ss << ",\"dir\":";
+        exportarJSONAux(no->dir, ss);
+        ss << "}";
+    }
+
 public:
     AVLTree() : raiz(nullptr), contadorNos(0), totalElementos(0), totalRotacoes(0) {}
 
@@ -224,6 +234,16 @@ public:
 
     void resetMetrics() {
         totalRotacoes = 0;
+    }
+
+    std::string exportarJSON() const {
+        std::stringstream ss;
+        ss << "{\"tipo\":\"AVLTree\",\"totalElementos\":" << totalElementos 
+           << ",\"altura\":" << height()
+           << ",\"rotacoes\":" << totalRotacoes << ",\"arvore\":";
+        exportarJSONAux(raiz, ss);
+        ss << "}";
+        return ss.str();
     }
 };
 

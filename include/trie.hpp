@@ -13,7 +13,7 @@
 struct NoTrie {
     bool fimPalavra;
     std::map<char, NoTrie*> filhos;
-    int id; // Identificador para visualização Graphviz
+    int id; // Identificador para visualização
 
     NoTrie(int idNo = 0) : fimPalavra(false), id(idNo) {}
 
@@ -26,7 +26,7 @@ struct NoTrie {
 };
 
 /**
- * @brief Implementação da Árvore Trie.
+ * @brief Implementação da Árvore Trie de Prefixos.
  */
 class Trie {
 private:
@@ -41,13 +41,11 @@ private:
         if (profundidade == palavra.length()) {
             if (!no->fimPalavra) {
                 removido = false;
-                return false; // Palavra não existia
+                return false;
             }
             no->fimPalavra = false;
             totalPalavras--;
             removido = true;
-
-            // Retorna true se este nó deve ser desalocado pelo pai
             return no->filhos.empty();
         }
 
@@ -69,40 +67,41 @@ private:
         return false;
     }
 
-    // Coleta recursivamente todas as palavras com determinado prefixo
     void coletarPalavras(NoTrie* no, std::string prefixoAtual, std::vector<std::string>& lista) const {
         if (!no) return;
-
-        if (no->fimPalavra) {
-            lista.push_back(prefixoAtual);
-        }
-
+        if (no->fimPalavra) lista.push_back(prefixoAtual);
         for (const auto& par : no->filhos) {
             coletarPalavras(par.second, prefixoAtual + par.first, lista);
         }
     }
 
-    // Gera nós e arestas no formato Graphviz DOT
-    void exportarDOTAux(NoTrie* no, std::stringstream& ss) const {
+    void exportarJSONAux(NoTrie* no, char charAresta, std::stringstream& ss) const {
         if (!no) return;
-
-        if (no == raiz) {
-            ss << "    node_" << no->id << " [label=\"RAIZ\", shape=circle, style=filled, fillcolor=\"#E0E0E0\"];\n";
-        } else if (no->fimPalavra) {
-            ss << "    node_" << no->id << " [label=\"\", shape=doublecircle, style=filled, fillcolor=\"#A5D6A7\", color=\"#2E7D32\"];\n";
+        ss << "{";
+        ss << "\"id\":" << no->id << ",";
+        if (charAresta != '\0') {
+            ss << "\"caractere\":\"" << charAresta << "\",";
         } else {
-            ss << "    node_" << no->id << " [label=\"\", shape=circle, style=filled, fillcolor=\"#BBDEFB\", color=\"#1565C0\"];\n";
+            ss << "\"caractere\":\"RAIZ\",";
         }
-
+        ss << "\"fimPalavra\":" << (no->fimPalavra ? "true" : "false") << ",";
+        ss << "\"filhos\":[";
+        bool primeiro = true;
         for (const auto& par : no->filhos) {
-            char c = par.first;
-            NoTrie* filho = par.second;
-
-            ss << "    node_" << no->id << " -> node_" << filho->id 
-               << " [label=\"" << c << "\", fontcolor=\"#D32F2F\", penwidth=1.5];\n";
-
-            exportarDOTAux(filho, ss);
+            if (!primeiro) ss << ",";
+            exportarJSONAux(par.second, par.first, ss);
+            primeiro = false;
         }
+        ss << "]}";
+    }
+
+    size_t contarNosAux(NoTrie* no) const {
+        if (!no) return 0;
+        size_t total = 1;
+        for (const auto& par : no->filhos) {
+            total += contarNosAux(par.second);
+        }
+        return total;
     }
 
 public:
@@ -115,9 +114,6 @@ public:
     Trie(const Trie&) = delete;
     Trie& operator=(const Trie&) = delete;
 
-    /**
-     * @brief Insere uma palavra na Trie.
-     */
     void insert(const std::string& palavra) {
         if (palavra.empty()) return;
 
@@ -135,9 +131,6 @@ public:
         }
     }
 
-    /**
-     * @brief Busca se uma palavra existe na Trie.
-     */
     bool search(const std::string& palavra) const {
         if (palavra.empty()) return false;
 
@@ -152,9 +145,6 @@ public:
         return atual != nullptr && atual->fimPalavra;
     }
 
-    /**
-     * @brief Verifica se existe alguma palavra com o prefixo dado.
-     */
     bool startsWith(const std::string& prefixo) const {
         NoTrie* atual = raiz;
         for (char c : prefixo) {
@@ -167,9 +157,6 @@ public:
         return atual != nullptr;
     }
 
-    /**
-     * @brief Remove uma palavra da Trie e libera nós não utilizados.
-     */
     bool remove(const std::string& palavra) {
         if (palavra.empty()) return false;
         bool removido = false;
@@ -177,18 +164,13 @@ public:
         return removido;
     }
 
-    /**
-     * @brief Retorna todas as palavras iniciadas com o prefixo.
-     */
     std::vector<std::string> autocomplete(const std::string& prefixo) const {
         std::vector<std::string> lista;
         NoTrie* atual = raiz;
 
         for (char c : prefixo) {
             auto it = atual->filhos.find(c);
-            if (it == atual->filhos.end()) {
-                return lista;
-            }
+            if (it == atual->filhos.end()) return lista;
             atual = it->second;
         }
 
@@ -200,18 +182,16 @@ public:
         return totalPalavras;
     }
 
-    std::string exportDOT(const std::string& titulo = "Trie") const {
+    size_t getNodeCount() const {
+        return contarNosAux(raiz);
+    }
+
+    std::string exportarJSON() const {
         std::stringstream ss;
-        ss << "digraph \"" << titulo << "\" {\n";
-        ss << "    rankdir=TB;\n";
-        ss << "    node [fontsize=12, fontname=\"Arial\"];\n";
-        ss << "    edge [fontsize=11, fontname=\"Arial\"];\n";
-        ss << "    labelloc=\"t\";\n";
-        ss << "    label=\"" << titulo << "\";\n";
-
-        exportarDOTAux(raiz, ss);
-
-        ss << "}\n";
+        ss << "{\"tipo\":\"Trie\",\"totalPalavras\":" << totalPalavras 
+           << ",\"totalNos\":" << getNodeCount() << ",\"arvore\":";
+        exportarJSONAux(raiz, '\0', ss);
+        ss << "}";
         return ss.str();
     }
 };

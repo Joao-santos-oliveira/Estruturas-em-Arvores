@@ -12,10 +12,10 @@
  * @brief Nó individual da Árvore Patricia (Radix Tree Compacta).
  */
 struct NoPatricia {
-    std::string prefixo;                 // Trecho de texto/prefixo armazenado no nó
-    bool fimPalavra;                     // Se finaliza uma palavra inserida
+    std::string prefixo;                 // Rótulo da string comprimida
+    bool fimPalavra;                     // Indica se uma palavra válida termina aqui
     std::map<char, NoPatricia*> filhos;  // Filhos indexados pelo 1º caractere do prefixo
-    int id;                              // Identificador para visualização Graphviz
+    int id;                              // Identificador único para visualização
 
     NoPatricia(const std::string& pref = "", bool terminal = false, int idNo = 0)
         : prefixo(pref), fimPalavra(terminal), id(idNo) {}
@@ -29,15 +29,16 @@ struct NoPatricia {
 };
 
 /**
- * @brief Implementação da Árvore Patricia.
+ * @brief Implementação da Árvore Patricia com métricas e serialização JSON.
  */
 class PatriciaTree {
 private:
     NoPatricia* raiz;
     int contadorNos;
     size_t totalPalavras;
+    unsigned long long totalSplits;
+    unsigned long long totalMerges;
 
-    // Retorna o tamanho do prefixo comum entre duas strings
     static size_t tamanhoPrefixoComum(const std::string& a, const std::string& b) {
         size_t tam = 0;
         size_t limite = std::min(a.length(), b.length());
@@ -47,14 +48,13 @@ private:
         return tam;
     }
 
-    // Inserção com divisão de nó (Split) quando há divergência de caracteres
     void inserirAux(NoPatricia* noAtual, const std::string& palavra) {
         if (palavra.empty()) return;
 
         char primCaractere = palavra[0];
         auto it = noAtual->filhos.find(primCaractere);
 
-        // Caso 1: Não existe aresta iniciando com este caractere
+        // Caso 1: Nenhuma aresta inicia com este caractere
         if (it == noAtual->filhos.end()) {
             noAtual->filhos[primCaractere] = new NoPatricia(palavra, true, ++contadorNos);
             totalPalavras++;
@@ -64,7 +64,7 @@ private:
         NoPatricia* filho = it->second;
         size_t tamComum = tamanhoPrefixoComum(palavra, filho->prefixo);
 
-        // Caso 2: A palavra coincide exatamente com o prefixo do filho
+        // Caso 2: Coincidência exata
         if (tamComum == palavra.length() && tamComum == filho->prefixo.length()) {
             if (!filho->fimPalavra) {
                 filho->fimPalavra = true;
@@ -73,7 +73,7 @@ private:
             return;
         }
 
-        // Caso 3: O prefixo do filho é prefixo próprio da palavra (continua recursão)
+        // Caso 3: Prefixo do filho é prefixo próprio da palavra
         if (tamComum == filho->prefixo.length()) {
             std::string restoPalavra = palavra.substr(tamComum);
             inserirAux(filho, restoPalavra);
@@ -81,19 +81,17 @@ private:
         }
 
         // Caso 4: Divergência parcial -> Divisão de Nó (Split)
+        totalSplits++;
         std::string parteComum = filho->prefixo.substr(0, tamComum);
         std::string restoFilho = filho->prefixo.substr(tamComum);
 
         NoPatricia* noDivisao = new NoPatricia(parteComum, false, ++contadorNos);
         
-        // Ajusta o filho antigo para conter apenas o restante e vira filho do nó intermediário
         filho->prefixo = restoFilho;
         noDivisao->filhos[restoFilho[0]] = filho;
 
-        // Atualiza a tabela do pai para apontar para o novo nó intermediário
         noAtual->filhos[primCaractere] = noDivisao;
 
-        // Se a palavra inteira foi consumida na parte comum
         if (tamComum == palavra.length()) {
             noDivisao->fimPalavra = true;
             totalPalavras++;
@@ -123,9 +121,9 @@ private:
         return buscarAux(filho, palavra.substr(tamComum));
     }
 
-    // Fusão (Merge) de nós internos com 1 único filho após remoção
     void fundirSePossivel(NoPatricia* no) {
         if (!no->fimPalavra && no->filhos.size() == 1 && no != raiz) {
+            totalMerges++;
             auto it = no->filhos.begin();
             NoPatricia* unicoFilho = it->second;
 
@@ -184,29 +182,35 @@ private:
         return removido;
     }
 
-    void exportarDOTAux(NoPatricia* no, std::stringstream& ss) const {
+    void exportarJSONAux(NoPatricia* no, std::stringstream& ss) const {
         if (!no) return;
-
-        std::string rotulo = (no == raiz) ? "RAIZ" : "\"" + no->prefixo + "\"";
-
-        if (no == raiz) {
-            ss << "    node_" << no->id << " [label=\"RAIZ\", shape=circle, style=filled, fillcolor=\"#E0E0E0\"];\n";
-        } else if (no->fimPalavra) {
-            ss << "    node_" << no->id << " [label=" << rotulo << ", shape=doublecircle, style=filled, fillcolor=\"#A5D6A7\", color=\"#2E7D32\", penwidth=2.0];\n";
-        } else {
-            ss << "    node_" << no->id << " [label=" << rotulo << ", shape=ellipse, style=filled, fillcolor=\"#BBDEFB\", color=\"#1565C0\"];\n";
-        }
-
+        ss << "{";
+        ss << "\"id\":" << no->id << ",";
+        ss << "\"prefixo\":\"" << (no == raiz ? "RAIZ" : no->prefixo) << "\",";
+        ss << "\"fimPalavra\":" << (no->fimPalavra ? "true" : "false") << ",";
+        ss << "\"filhos\":[";
+        bool primeiro = true;
         for (const auto& par : no->filhos) {
-            NoPatricia* filho = par.second;
-            ss << "    node_" << no->id << " -> node_" << filho->id 
-               << " [label=\" [" << filho->prefixo[0] << "]\", fontcolor=\"#C2185B\", penwidth=1.5];\n";
-            exportarDOTAux(filho, ss);
+            if (!primeiro) ss << ",";
+            exportarJSONAux(par.second, ss);
+            primeiro = false;
         }
+        ss << "]}";
+    }
+
+    size_t contarNosAux(NoPatricia* no) const {
+        if (!no) return 0;
+        size_t total = 1;
+        for (const auto& par : no->filhos) {
+            total += contarNosAux(par.second);
+        }
+        return total;
     }
 
 public:
-    PatriciaTree() : raiz(new NoPatricia("", false, 0)), contadorNos(0), totalPalavras(0) {}
+    PatriciaTree() 
+        : raiz(new NoPatricia("", false, 0)), contadorNos(0), totalPalavras(0),
+          totalSplits(0), totalMerges(0) {}
 
     ~PatriciaTree() {
         delete raiz;
@@ -234,18 +238,31 @@ public:
         return totalPalavras;
     }
 
-    std::string exportDOT(const std::string& titulo = "Patricia Tree (Radix Compacta)") const {
+    size_t getNodeCount() const {
+        return contarNosAux(raiz);
+    }
+
+    unsigned long long getSplitCount() const {
+        return totalSplits;
+    }
+
+    unsigned long long getMergeCount() const {
+        return totalMerges;
+    }
+
+    void resetMetrics() {
+        totalSplits = 0;
+        totalMerges = 0;
+    }
+
+    std::string exportarJSON() const {
         std::stringstream ss;
-        ss << "digraph \"" << titulo << "\" {\n";
-        ss << "    rankdir=TB;\n";
-        ss << "    node [fontsize=12, fontname=\"Arial\"];\n";
-        ss << "    edge [fontsize=11, fontname=\"Arial\"];\n";
-        ss << "    labelloc=\"t\";\n";
-        ss << "    label=\"" << titulo << "\";\n";
-
-        exportarDOTAux(raiz, ss);
-
-        ss << "}\n";
+        ss << "{\"tipo\":\"Patricia\",\"totalPalavras\":" << totalPalavras 
+           << ",\"totalNos\":" << getNodeCount() 
+           << ",\"splits\":" << totalSplits 
+           << ",\"merges\":" << totalMerges << ",\"arvore\":";
+        exportarJSONAux(raiz, ss);
+        ss << "}";
         return ss.str();
     }
 };

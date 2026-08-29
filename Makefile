@@ -1,44 +1,33 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic -O3 -Iinclude
-SRC_DIR = src
 INC_DIR = include
 TEST_DIR = tests
-VIS_DIR = visualizer
 BENCH_DIR = benchmarks
 BIN_DIR = bin
 
-TARGETS = $(BIN_DIR)/main $(BIN_DIR)/test_trees $(BIN_DIR)/generate_traces $(BIN_DIR)/benchmark_runner
+HEADERS = $(wildcard $(INC_DIR)/*.hpp)
 
-.PHONY: all clean test traces bench run
+.PHONY: all clean test datasets bench
 
-all: $(TARGETS)
+all: $(BIN_DIR)/test_trees $(BIN_DIR)/executar_benchmarks
 
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-HEADERS = $(wildcard $(INC_DIR)/*.hpp)
-
-$(BIN_DIR)/main: $(SRC_DIR)/main.cpp $(HEADERS) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $< -o $@
-
 $(BIN_DIR)/test_trees: $(TEST_DIR)/test_trees.cpp $(HEADERS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-$(BIN_DIR)/generate_traces: $(VIS_DIR)/generate_traces.cpp $(HEADERS) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $< -o $@
-
-$(BIN_DIR)/benchmark_runner: $(BENCH_DIR)/benchmark_runner.cpp $(HEADERS) | $(BIN_DIR)
+$(BIN_DIR)/executar_benchmarks: $(BENCH_DIR)/executar_benchmarks.cpp $(HEADERS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 test: $(BIN_DIR)/test_trees
 	./$(BIN_DIR)/test_trees
 
-traces: $(BIN_DIR)/generate_traces
-	./$(BIN_DIR)/generate_traces
+datasets:
+	python3 benchmarks/datasets/gerar_datasets.py
 
-bench: $(BIN_DIR)/benchmark_runner
-	./$(BIN_DIR)/benchmark_runner
-	python3 benchmarks/plot_results.py
+bench: $(BIN_DIR)/executar_benchmarks
+	./$(BIN_DIR)/executar_benchmarks
 
 clean:
-	rm -rf $(BIN_DIR) assets/*.dot assets/*.png relatorio/figuras/*.png
+	rm -rf $(BIN_DIR) benchmarks/dados_comparativos.csv

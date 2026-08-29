@@ -9,9 +9,6 @@
 #include <limits>
 #include <array>
 
-/**
- * @brief Estrutura representando um Ponto em K dimensões.
- */
 template <size_t K, typename TipoCoord = double>
 struct Ponto {
     std::array<TipoCoord, K> coords;
@@ -63,9 +60,6 @@ struct Ponto {
     }
 };
 
-/**
- * @brief Nó da KD-Tree.
- */
 template <size_t K, typename TipoCoord = double>
 struct NoKD {
     Ponto<K, TipoCoord> ponto;
@@ -78,9 +72,6 @@ struct NoKD {
         : ponto(pt), eixo(eixoCorte), esq(nullptr), dir(nullptr), id(idNo) {}
 };
 
-/**
- * @brief KD-Tree para indexação espacial e busca multidimensional.
- */
 template <size_t K, typename TipoCoord = double>
 class KDTree {
 private:
@@ -88,6 +79,7 @@ private:
     int contadorNos;
     size_t totalPontos;
     mutable unsigned long long calculosDistancia;
+    mutable unsigned long long podasRealizadas;
 
     NoKD<K, TipoCoord>* inserirAux(NoKD<K, TipoCoord>* no, const Ponto<K, TipoCoord>& pt, int prof, bool& inserido) {
         if (!no) {
@@ -143,9 +135,14 @@ private:
         int eixo = no->eixo;
         if (minPt[eixo] <= no->ponto[eixo]) {
             buscaIntervaloAux(no->esq, minPt, maxPt, resultado);
+        } else {
+            podasRealizadas++;
         }
+
         if (maxPt[eixo] >= no->ponto[eixo]) {
             buscaIntervaloAux(no->dir, minPt, maxPt, resultado);
+        } else {
+            podasRealizadas++;
         }
     }
 
@@ -171,9 +168,10 @@ private:
 
         vizinhoMaisProximoAux(primario, alvo, melhorNo, menorDistQuad);
 
-        // Poda: só explora o outro lado se a distância ao hiperplano for menor que o raio atual
         if (dif * dif < menorDistQuad) {
             vizinhoMaisProximoAux(secundario, alvo, melhorNo, menorDistQuad);
+        } else {
+            podasRealizadas++;
         }
     }
 
@@ -184,37 +182,28 @@ private:
         delete no;
     }
 
-    void exportarDOTAux(NoKD<K, TipoCoord>* no, std::stringstream& ss) const {
-        if (!no) return;
-
-        const char nomesEixos[] = {'X', 'Y', 'Z', 'W'};
-        char charEixo = (no->eixo < 4) ? nomesEixos[no->eixo] : ('0' + no->eixo);
-
-        std::string corFundo = (no == raiz) ? "#FFE0B2" : "#B2DFDB";
-        std::string corBorda = (no == raiz) ? "#E65100" : "#00695C";
-
-        ss << "    node_" << no->id << " [label=\"" << no->ponto.toString() << "\\n(eixo: " << charEixo 
-           << ")\", shape=box, style=filled, fillcolor=\"" << corFundo << "\", color=\"" << corBorda << "\", penwidth=2.0];\n";
-
-        if (no->esq) {
-            ss << "    node_" << no->id << " -> node_" << no->esq->id << " [label=\"<=" << charEixo << "\"];\n";
-            exportarDOTAux(no->esq, ss);
-        } else {
-            ss << "    null_l_" << no->id << " [shape=point, width=0.1];\n";
-            ss << "    node_" << no->id << " -> null_l_" << no->id << " [style=dashed];\n";
+    void exportarJSONAux(NoKD<K, TipoCoord>* no, std::stringstream& ss) const {
+        if (!no) {
+            ss << "null";
+            return;
         }
-
-        if (no->dir) {
-            ss << "    node_" << no->id << " -> node_" << no->dir->id << " [label=\">" << charEixo << "\"];\n";
-            exportarDOTAux(no->dir, ss);
-        } else {
-            ss << "    null_r_" << no->id << " [shape=point, width=0.1];\n";
-            ss << "    node_" << no->id << " -> null_r_" << no->id << " [style=dashed];\n";
+        ss << "{";
+        ss << "\"id\":" << no->id << ",";
+        ss << "\"eixo\":" << no->eixo << ",";
+        ss << "\"coords\":[";
+        for (size_t i = 0; i < K; ++i) {
+            ss << no->ponto[i] << (i + 1 < K ? "," : "");
         }
+        ss << "],";
+        ss << "\"esq\":";
+        exportarJSONAux(no->esq, ss);
+        ss << ",\"dir\":";
+        exportarJSONAux(no->dir, ss);
+        ss << "}";
     }
 
 public:
-    KDTree() : raiz(nullptr), contadorNos(0), totalPontos(0), calculosDistancia(0) {}
+    KDTree() : raiz(nullptr), contadorNos(0), totalPontos(0), calculosDistancia(0), podasRealizadas(0) {}
 
     ~KDTree() {
         destruirRecursivo(raiz);
@@ -257,26 +246,23 @@ public:
         return calculosDistancia;
     }
 
-    void resetMetrics() {
-        calculosDistancia = 0;
+    unsigned long long getPruningCount() const {
+        return podasRealizadas;
     }
 
-    std::string exportDOT(const std::string& titulo = "KD-Tree") const {
+    void resetMetrics() {
+        calculosDistancia = 0;
+        podasRealizadas = 0;
+    }
+
+    std::string exportarJSON() const {
         std::stringstream ss;
-        ss << "digraph \"" << titulo << "\" {\n";
-        ss << "    rankdir=TB;\n";
-        ss << "    node [fontsize=12, fontname=\"Arial\"];\n";
-        ss << "    edge [fontsize=10, fontname=\"Arial\"];\n";
-        ss << "    labelloc=\"t\";\n";
-        ss << "    label=\"" << titulo << "\";\n";
-
-        if (raiz) {
-            exportarDOTAux(raiz, ss);
-        } else {
-            ss << "    empty [label=\"Vazia\", shape=none];\n";
-        }
-
-        ss << "}\n";
+        ss << "{\"tipo\":\"KDTree\",\"dimensao\":" << K 
+           << ",\"totalPontos\":" << totalPontos 
+           << ",\"calculosDistancia\":" << calculosDistancia
+           << ",\"podas\":" << podasRealizadas << ",\"arvore\":";
+        exportarJSONAux(raiz, ss);
+        ss << "}";
         return ss.str();
     }
 };
