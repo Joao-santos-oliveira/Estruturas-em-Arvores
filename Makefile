@@ -32,5 +32,14 @@ bench: $(BIN_DIR)/executar_benchmarks
 bench-all: $(BIN_DIR)/executar_benchmarks
 	./$(BIN_DIR)/executar_benchmarks --all
 
+$(BIN_DIR)/executar_experimentos_cientificos: $(BENCH_DIR)/executar_experimentos_cientificos.cpp $(HEADERS) | $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) $< -o $@
+
+bench-cientifico: $(BIN_DIR)/executar_experimentos_cientificos
+	./$(BIN_DIR)/executar_experimentos_cientificos
+
+plot:
+	python3 benchmarks/gerar_graficos_cientificos.py
+
 clean:
-	rm -rf $(BIN_DIR) benchmarks/dados_comparativos.csv
+	rm -rf $(BIN_DIR) benchmarks/dados_comparativos.csv benchmarks/dados_estatisticos_10execucoes.csv benchmarks/dados_estatisticos_10execucoes.json

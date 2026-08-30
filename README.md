@@ -1,139 +1,101 @@
 # Modelagem, Implementação e Análise Comparativa de Estruturas em Árvores Especializadas
 
-Trabalho Prático Individual I — **Algoritmos e Estruturas de Dados II (AEDS II)**  
+Trabalho Prático Individual I — Algoritmos e Estruturas de Dados II (AEDS II)
 
 ---
 
-## 📌 Visão Geral do Projeto
+## 1. Visão Geral
 
-Este repositório contém o estudo formal, a implementação computacional de alto desempenho (C++17) e a avaliação experimental de **cinco estruturas de dados hierárquicas avançadas**, além de duas estruturas de referência (*baselines*):
+Este repositório contém o estudo, implementação em C++17 e avaliação experimental de cinco estruturas em árvores não convencionais, além de duas estruturas de referência (*baselines*):
 
-1. **Árvore Trie** (*Prefix Tree* / Árvore de Prefixos)
-2. **Árvore Patricia** (*Practical Algorithm To Retrieve Information Coded In Alphanumeric* / Radix Tree Compacta)
-3. **Árvore Splay** (*Self-Adjusting Binary Search Tree* / Árvore de Busca Binária Autoajustável)
-4. **Árvore Treap** (*Tree + Heap* / Árvore de Busca Binária com Balanceamento Probabilístico)
-5. **KD-Tree** (*k-Dimensional Tree* / Árvore de Particionamento Espacial Multidimensional)
-6. **Baselines de Comparação:** **BST Convencional** e **Árvore AVL**
+1. **Árvore Trie** (*Prefix Tree*)
+2. **Árvore Patricia** (*Radix Tree compacta*)
+3. **Árvore Splay** (*Self-Adjusting Binary Search Tree*)
+4. **Árvore Treap** (*Tree + Heap*)
+5. **KD-Tree** (*k-Dimensional Tree, 2D*)
+6. **Baselines:** Árvore Binária de Busca Padrão (**BST**) e Árvore **AVL**
 
 ---
 
-## 📁 Arquitetura do Repositório
+## 2. Estrutura do Repositório
 
 ```text
 Estruturas-em-Arvores/
-├── include/                     # Headers modulares C++17 das estruturas
+├── include/                     # Implementações em C++17 das estruturas
 │   ├── trie.hpp                 # Trie com busca por prefixo, autocomplete e exportação JSON
 │   ├── patricia.hpp             # Patricia Tree com compactação de arestas (split/merge)
 │   ├── splay_tree.hpp           # Splay Tree com passos Zig, Zig-Zig e Zig-Zag
 │   ├── treap.hpp                # Treap com rotações e prioridades de Max-Heap
-│   ├── kd_tree.hpp              # KD-Tree multidimensional com 1-NN e Range Search
-│   ├── bst.hpp                  # Baseline: Árvore Binária de Busca Padrão
-│   └── avl_tree.hpp             # Baseline: Árvore AVL Estritamente Balanceada
-├── tests/                       # Camada 1: Testes Unitários e Validação de Casos de Borda
-│   └── test_trees.cpp           # Suite com 100% de cobertura e asserções formais
-├── benchmarks/                  # Camada 2: Metodologia Experimental e Benchmarking
-│   ├── datasets/                # Matriz completa de 51 datasets (N = 100 a 100.000)
-│   │   ├── 1_strings/           # Prefixos densos, dispersos e pior caso linear
-│   │   ├── 2_numericos/         # Ordenados cresc/decresc, aleatórios, quase-ordenados e Zipf
-│   │   ├── 3_espaciais/         # Distribuições uniformes 2D/3D, clusters e alvos de busca
-│   │   └── gerar_datasets.py    # Script reprodutível de geração dos datasets
-│   ├── executar_benchmarks.cpp  # Painel Interativo em C++ com cronometragem em segundos (s)
-│   └── dados_comparativos.csv   # Resultados experimentais brutos consolidados
-├── relatorio/                   # Artigo Técnico Acadêmico (8 a 12 páginas em LaTeX)
-│   ├── secoes/
-│   └── figuras/
-├── Makefile                     # Build system automatizado
-└── CMakeLists.txt               # Configuração CMake multiplataforma
+│   ├── kd_tree.hpp              # KD-Tree com Nearest Neighbor e Range Search
+│   ├── bst.hpp                  # Baseline: Árvore Binária de Busca
+│   └── avl_tree.hpp             # Baseline: Árvore AVL
+├── tests/
+│   └── test_trees.cpp           # Testes unitários e verificação de casos de borda
+├── benchmarks/
+│   ├── datasets/                # Conjuntos de dados gerados (N = 100 a 100.000)
+│   │   ├── 1_strings/           # Prefixos densos e dispersos
+│   │   ├── 2_numericos/         # Ordenados, aleatórios, quase-ordenados e Zipf
+│   │   ├── 3_espaciais/         # Distribuições uniformes 2D e clusters gaussianos
+│   │   └── gerar_datasets.py    # Script de geração dos datasets
+│   ├── executar_benchmarks.cpp  # Painel interativo para testes individuais e ciclos de operações
+│   ├── executar_experimentos_cientificos.cpp # Bateria com 10 repetições por configuração
+│   └── gerar_graficos_cientificos.py        # Geração dos gráficos comparativos em SVG
+├── relatorio/
+│   ├── secoes/                  # Seções em LaTeX do relatório técnico
+│   └── figuras/                 # Figuras vetoriais (SVG) para o relatório
+└── Makefile                     # Regras de compilação e automação
 ```
 
 ---
 
-## 🧪 Metodologia de Avaliação e Baterias de Testes
+## 3. Compilação e Execução
 
-O projeto adota uma abordagem de testes em **duas camadas independentes**:
+O projeto utiliza `g++` com suporte a C++17 e otimização `-O3`.
 
-```mermaid
-flowchart LR
-    A["Código C++<br>(include/*.hpp)"] --> B["Camada 1: Testes Unitários<br>(tests/test_trees.cpp)"]
-    A --> C["Camada 2: Benchmarking & Métricas<br>(benchmarks/executar_benchmarks.cpp)"]
-    B --> D["Validação de Corretude<br>(Asserts, Splits, Merges, Rotações)"]
-    C --> E["Métricas Científicas<br>(Tempo Total em Segundos, Memória, Nós, Poda)"]
-```
-
----
-
-### 🔬 Camada 1: Testes Unitários e Casos de Borda (`tests/test_trees.cpp`)
-Focada em garantir que todas as invariantes estruturais e operações fundamentais funcionem sem falhas:
-
-* **Trie e Patricia:** Validação de inserção exata, sobreposição parcial de prefixos, busca de chaves ausentes, `startsWith`, `autocomplete`, remoção com poda de ramos órfãos na Trie e **fusão de nós (*merge*)** na Patricia.
-* **Splay Tree:** Verificação do autoajuste trazendo o elemento acessado para a raiz através de combinações de rotações **Zig**, **Zig-Zig** e **Zig-Zag**, bem como remoção via *split & join*.
-* **Treap:** Validação da invariante de **BST sobre as chaves** e **Max-Heap sobre as prioridades**, com rotações determinísticas na subida e rotações descendentes na remoção.
-* **KD-Tree:** Verificação dos cortes alternados por dimensão ($X \to Y \to X$), consultas de **Vizinho Mais Próximo (*1-NN*)** e consultas por intervalo (**Range Search** em caixas delimitadoras).
-* **Baselines (BST e AVL):** Teste de degeneração linear na BST e verificação do fator de balanceamento $FB \in \{-1, 0, 1\}$ com altura $\le 1.44 \log_2(N)$ na AVL.
-
----
-
-### 📈 Camada 2: Benchmarks de Desempenho e Métricas Científicas (`benchmarks/executar_benchmarks.cpp`)
-Executa o **ciclo completo de vida** de cada estrutura com tamanhos de entrada $N \in \{100, 1.000, 10.000, 50.000, 100.000\}$:
-
-```text
-[1. Inserção em Massa] ──▶ [2. Busca (Sucesso)] ──▶ [3. Busca (Falha)] ──▶ [4. Operação Específica] ──▶ [5. Remoção 50%]
-```
-
-#### 🗂️ Matriz de Datasets Disponíveis para Seleção no Benchmark:
-
-1. **Datasets de Strings (Trie e Patricia Tree):**
-   * `Prefixos Densos (Dicionário Real)`: Alta sobreposição de prefixos comuns (`computador`, `computacao`, `compilador`), evidenciando a compressão de nós da Patricia.
-   * `Prefixos Dispersos (Aleatórias)`: Strings uniformes sem prefixos comuns.
-   * `Pior Caso Linear`: String de 120 caracteres sem ramificações (Trie cria 122 nós; Patricia compacta em 4 nós).
-
-2. **Datasets Numéricos (Splay, Treap, AVL e BST):**
-   * `Aleatório Uniforme`: Permutação uniforme $1 \dots N$ (caso médio assintótico).
-   * `Ordenado Crescente (1 .. N)`: Pior caso clássico da BST ($\mathcal{O}(N^2)$ acumulado), testando as rotações de heap da Treap e rotações AVL.
-   * `Ordenado Decrescente (N .. 1)`: Pior caso espelhado.
-   * `Quase Ordenado`: $95\%$ ordenado com $5\%$ de perturbações aleatórias.
-   * `Localidade Temporal (Zipf 80-20 e 90-10)`: $100.000$ consultas concentradas em $20\%$ ou $10\%$ das chaves mais frequentes.
-
-3. **Datasets Espaciais Multidimensionais (KD-Tree):**
-   * `Uniformes 2D / 3D`: Coordenadas distribuídas homogeneamente no espaço $[-1000, 1000]^K$.
-   * `Clusters Gaussianos 2D`: Agrupamentos densos em ilhas espaciais (simulando cidades e pontos de interesse em sistemas GIS).
-
----
-
-## 🛠️ Como Compilar e Executar com o Makefile
-
-O projeto dispõe de um `Makefile` automatizado com suporte completo a compilação com flags rigorosas (`-std=c++17 -Wall -Wextra -Wpedantic -O3`):
-
-### 1. Compilar todo o projeto
+### 3.1. Compilar os binários
 ```bash
 make all
 ```
 
-### 2. Executar a Suíte de Testes Unitários
-Valida a integridade lógica, casos de borda e asserções de todas as estruturas:
+### 3.2. Executar testes unitários
+Valida as operações de inserção, busca, remoção, rotações, cortes espaciais e propriedades estruturais:
 ```bash
 make test
 ```
 
-### 3. Gerar a Matriz Completa de Datasets
-Executa o script Python que gera os 51 arquivos de teste em `benchmarks/datasets/`:
+### 3.3. Gerar os datasets de teste
+Gera os arquivos de dados em `benchmarks/datasets/`:
 ```bash
 make datasets
 ```
 
-### 4. Executar o Painel Interativo de Benchmarks
-Abre o menu interativo no terminal, permitindo escolher qual árvore executar, o tipo de dataset (Ordenado, Decrescente, Aleatório, Quase-Ordenado, etc.), o tamanho $N$ e modos comparativos:
+### 3.4. Executar o painel interativo de benchmarks
+Permite selecionar a estrutura, o tipo de dado e o tamanho de entrada para teste no terminal:
 ```bash
 make bench
 ```
 
-### 5. Executar Bateria Completa de Benchmarks (Modo Automático)
-Executa todos os 51 experimentos em lote e grava os resultados em `benchmarks/dados_comparativos.csv`:
+### 3.5. Executar os experimentos com repetições (10 repetições)
+Executa a matriz completa de experimentos com 10 repetições por configuração, salvando médias, desvios-padrão e métricas em CSV e JSON:
 ```bash
-make bench-all
+make bench-cientifico
 ```
 
-### 6. Limpar binários e arquivos temporários
+### 3.6. Gerar os gráficos comparativos (SVG)
+Gera as figuras vetoriais em `relatorio/figuras/`:
+```bash
+make plot
+```
+
+As figuras produzidas incluem:
+- `fig1_trie_patricia_insercao.svg`: Tempo de inserção de Trie vs. Patricia em prefixos densos e dispersos.
+- `fig2_trie_patricia_nos.svg`: Contagem de nós alocados (compressão de arestas da Patricia).
+- `fig3_pior_caso_ordenado.svg`: Pior caso com chaves ordenadas (BST vs. AVL, Treap e Splay).
+- `fig4_insercao_4_distribuicoes.svg`: AVL vs. Treap vs. Splay sob 4 distribuições de entrada.
+- `fig6_rotacoes_acumuladas.svg`: Custo de reorganização estrutural (rotações acumuladas).
+- `fig7_kdtree_consultas.svg`: Tempo de 1-NN e Range Query na KD-Tree (uniforme vs. clusters).
+
+### 3.7. Limpar binários e dados temporários
 ```bash
 make clean
 ```
