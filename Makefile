@@ -7,7 +7,7 @@ BIN_DIR = bin
 
 HEADERS = $(wildcard $(INC_DIR)/*.hpp)
 
-.PHONY: all clean test datasets bench
+.PHONY: all clean test datasets bench bench-all
 
 all: $(BIN_DIR)/test_trees $(BIN_DIR)/executar_benchmarks
 
@@ -28,6 +28,9 @@ datasets:
 
 bench: $(BIN_DIR)/executar_benchmarks
 	./$(BIN_DIR)/executar_benchmarks
+
+bench-all: $(BIN_DIR)/executar_benchmarks
+	./$(BIN_DIR)/executar_benchmarks --all
 
 clean:
 	rm -rf $(BIN_DIR) benchmarks/dados_comparativos.csv
