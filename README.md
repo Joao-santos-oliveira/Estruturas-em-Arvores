@@ -95,7 +95,14 @@ As figuras produzidas incluem:
 - `fig6_rotacoes_acumuladas.svg`: Custo de reorganização estrutural (rotações acumuladas).
 - `fig7_kdtree_consultas.svg`: Tempo de 1-NN e Range Query na KD-Tree (uniforme vs. clusters).
 
-### 3.7. Limpar binários e dados temporários
+### 3.7. Executar a Interface Web Interativa (GitHub Pages)
+Inicia o servidor local para visualizar a interface web estática localizada em `docs/`:
+```bash
+make web
+```
+Ou abra diretamente o arquivo `docs/index.html` em qualquer navegador moderno. Quando publicado no GitHub, basta ativar o **GitHub Pages** apontando para a pasta `/docs` da branch principal.
+
+### 3.8. Limpar binários e dados temporários
 ```bash
 make clean
 ```

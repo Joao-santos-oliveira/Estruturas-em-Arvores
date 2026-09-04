@@ -1,9 +1,0 @@
-Estrutura,Dataset,Operacao,TamanhoN,TempoTotal_s,TempoMedio_ns,Metrica_Operacoes,Contagem_Nos,Detalhes
-Patricia,Prefixos_Densos,Insercao,50000,0.059284,1185.68,16767,66766,"Splits: 16767"
-Patricia,Prefixos_Densos,Busca_Sucesso,50000,0.028022,560.44,0,66766,"100% Sucesso"
-Patricia,Prefixos_Densos,Busca_Falha,50000,0.001648,32.95,0,66766,"Rejeicao rapida"
-Patricia,Prefixos_Densos,Remocao_50pct,25000,0.020614,824.55,7997,33773,"Merges: 7997"
-Patricia,Prefixos_Dispersos,Insercao,50000,0.030443,608.86,16701,66702,"Splits: 16701"
-Patricia,Prefixos_Dispersos,Busca_Sucesso,50000,0.027015,540.30,0,66702,"100% Sucesso"
-Patricia,Prefixos_Dispersos,Busca_Falha,50000,0.004735,94.69,0,66702,"Rejeicao rapida"
-Patricia,Prefixos_Dispersos,Remocao_50pct,25000,0.018893,755.71,8177,33526,"Merges: 8177"

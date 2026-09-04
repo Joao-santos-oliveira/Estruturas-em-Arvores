@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 520" width="860" height="520">
+<rect width="860" height="520" fill="#FFFFFF" rx="8" stroke="#CBD5E1" stroke-width="1"/>
+<style>
+  text { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; }
+  .tag  { font-size:9.5px; font-weight:700; fill:#2563EB; letter-spacing:.7px; }
+  .ttl  { font-size:14.5px; font-weight:800; fill:#0F172A; }
+  .sub  { font-size:10.5px; fill:#64748B; }
+  .axl  { font-size:11.5px; font-weight:700; fill:#334155; }
+  .tck  { font-size:9.5px;  font-weight:500; fill:#64748B;
+          font-family:'Courier New',monospace; }
+  .grid { stroke:#E2E8F0; stroke-width:.9; stroke-dasharray:4,4; }
+  .ax   { stroke:#94A3B8; stroke-width:1.5; }
+  .lbl  { font-size:9.5px; font-weight:700; }
+  .lcrd { fill:#FFFFFF; stroke:#E2E8F0; stroke-width:1; }
+</style>
+<rect x="95" y="16" width="234.5" height="16" fill="#EFF6FF" rx="3"/>
+<text x="102" y="28" class="tag">Custo de Reorganização Estrutural</text>
+<text x="95" y="50" class="ttl">Rotações Acumuladas na Inserção (Caso Médio — Dados Aleatórios)</text>
+<text x="95" y="66" class="sub">AVL executa ≤ 2 rotações por inserção; Splay e Treap reorganizam caminhos inteiros  •  Média de 10 Execuções Independentes</text>
+<rect x="95" y="82" width="735" height="370" fill="#F8FAFC" rx="3"/>
+<line x1="95" y1="452.0" x2="830" y2="452.0" class="grid"/>
+<text x="87" y="455.5" text-anchor="end" class="tck">0.0e+00</text>
+<line x1="95" y1="378.0" x2="830" y2="378.0" class="grid"/>
+<text x="87" y="381.5" text-anchor="end" class="tck">622,509</text>
+<line x1="95" y1="304.0" x2="830" y2="304.0" class="grid"/>
+<text x="87" y="307.5" text-anchor="end" class="tck">1,245,018</text>
+<line x1="95" y1="230.0" x2="830" y2="230.0" class="grid"/>
+<text x="87" y="233.5" text-anchor="end" class="tck">1,867,527</text>
+<line x1="95" y1="156.0" x2="830" y2="156.0" class="grid"/>
+<text x="87" y="159.5" text-anchor="end" class="tck">2,490,036</text>
+<line x1="95" y1="82.0" x2="830" y2="82.0" class="grid"/>
+<text x="87" y="85.5" text-anchor="end" class="tck">3,112,545</text>
+<line x1="95.0" y1="82" x2="95.0" y2="452" class="grid"/>
+<text x="95.0" y="470" text-anchor="middle" class="tck">100</text>
+<line x1="340.0" y1="82" x2="340.0" y2="452" class="grid"/>
+<text x="340.0" y="470" text-anchor="middle" class="tck">1,000</text>
+<line x1="585.0" y1="82" x2="585.0" y2="452" class="grid"/>
+<text x="585.0" y="470" text-anchor="middle" class="tck">10,000</text>
+<line x1="756.2" y1="82" x2="756.2" y2="452" class="grid"/>
+<text x="756.2" y="470" text-anchor="middle" class="tck">50,000</text>
+<line x1="830.0" y1="82" x2="830.0" y2="452" class="grid"/>
+<text x="830.0" y="470" text-anchor="middle" class="tck">100,000</text>
+<line x1="95" y1="452" x2="830" y2="452" class="ax"/>
+<line x1="95" y1="82"   x2="95"    y2="452" class="ax"/>
+<text x="462.5" y="492" text-anchor="middle" class="axl">Tamanho da Entrada N</text>
+<text x="22" y="267.0" text-anchor="middle" transform="rotate(-90 22 267.0)" class="axl">Rotações Acumuladas</text>
+<path d="M95.0,452.0 L340.0,451.9 L585.0,451.2 L756.2,447.8 L830.0,443.7" fill="none" stroke="#059669" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="95.0" cy="452.0" r="4" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+<circle cx="340.0" cy="451.9" r="4" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+<circle cx="585.0" cy="451.2" r="4" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+<circle cx="756.2" cy="447.8" r="4" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+<circle cx="830.0" cy="443.7" r="4" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+<path d="M95.0,452.0 L340.0,451.8 L585.0,449.6 L756.2,440.1 L830.0,428.3" fill="none" stroke="#D97706" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="91.5" y="448.5" width="7" height="7" fill="#D97706" stroke="#fff" stroke-width="1.5" rx="1"/>
+<rect x="336.5" y="448.3" width="7" height="7" fill="#D97706" stroke="#fff" stroke-width="1.5" rx="1"/>
+<rect x="581.5" y="446.1" width="7" height="7" fill="#D97706" stroke="#fff" stroke-width="1.5" rx="1"/>
+<rect x="752.7" y="436.6" width="7" height="7" fill="#D97706" stroke="#fff" stroke-width="1.5" rx="1"/>
+<rect x="826.5" y="424.8" width="7" height="7" fill="#D97706" stroke="#fff" stroke-width="1.5" rx="1"/>
+<path d="M95.0,451.9 L340.0,450.5 L585.0,429.0 L756.2,309.7 L830.0,143.7" fill="none" stroke="#7C3AED" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="95.0,446.9 90.0,455.9 100.0,455.9" fill="#7C3AED" stroke="#fff" stroke-width="1.5"/>
+<polygon points="340.0,445.5 335.0,454.5 345.0,454.5" fill="#7C3AED" stroke="#fff" stroke-width="1.5"/>
+<polygon points="585.0,424.0 580.0,433.0 590.0,433.0" fill="#7C3AED" stroke="#fff" stroke-width="1.5"/>
+<polygon points="756.2,304.7 751.2,313.7 761.2,313.7" fill="#7C3AED" stroke="#fff" stroke-width="1.5"/>
+<polygon points="830.0,138.7 825.0,147.7 835.0,147.7" fill="#7C3AED" stroke="#fff" stroke-width="1.5"/>
+<rect x="465" y="92" width="185" height="72" class="lcrd" rx="5"/>
+<line x1="475" y1="110" x2="497" y2="110" stroke="#059669" stroke-width="2.5"/>
+<circle cx="486" cy="110" r="3.5" fill="#059669" stroke="#fff" stroke-width="1.5"/>
+<text x="503" y="114" class="lbl" fill="#1E293B">Árvore AVL   (≤2 rot. / inserção)</text>
+<line x1="475" y1="130" x2="497" y2="130" stroke="#D97706" stroke-width="2.5"/>
+<circle cx="486" cy="130" r="3.5" fill="#D97706" stroke="#fff" stroke-width="1.5"/>
+<text x="503" y="134" class="lbl" fill="#1E293B">Árvore Treap (heap ascendente)</text>
+<line x1="475" y1="150" x2="497" y2="150" stroke="#7C3AED" stroke-width="2.5"/>
+<circle cx="486" cy="150" r="3.5" fill="#7C3AED" stroke="#fff" stroke-width="1.5"/>
+<text x="503" y="154" class="lbl" fill="#1E293B">Árvore Splay (rotações no caminho)</text>
+</svg>

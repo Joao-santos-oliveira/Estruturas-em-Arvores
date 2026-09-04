@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estruturas em Árvores Especializadas — AEDS II</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/tree_visualizer.css">
+</head>
+<body data-theme="dark">
+
+    <!-- Header Principal -->
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="logo-badge">AEDS II</span>
+                <div class="logo-title">
+                    <h1>Estruturas em Árvores Especializadas</h1>
+                    <p>Modelagem, Implementação e Avaliação Experimental</p>
+                </div>
+            </div>
+
+            <!-- Abas de Navegação -->
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-target="visualizerSection">
+                    Visualizador Interativo
+                </button>
+                <button class="tab-btn" data-target="threeStatesSection">
+                    3 Estados Estruturais
+                </button>
+                <button class="tab-btn" data-target="complexitySection">
+                    Custos e Complexidade
+                </button>
+                <button class="tab-btn" data-target="benchmarksSection">
+                    Gráficos Experimentais
+                </button>
+            </nav>
+
+            <div class="header-actions">
+                <button id="themeToggleBtn" class="theme-toggle-btn" title="Alternar Tema Claro/Escuro">☀️</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- ABA 1: VISUALIZADOR INTERATIVO -->
+        <section id="visualizerSection" class="view-section active">
+            <div class="workspace-grid">
+                
+                <!-- Painel Lateral de Controle -->
+                <aside class="control-sidebar">
+                    <div class="control-group">
+                        <label class="control-label" for="structureSelect">Estrutura em Árvore</label>
+                        <select id="structureSelect" class="select-input">
+                            <optgroup label="Árvores de Prefixos">
+                                <option value="trie" selected>Árvore Trie (Prefix Tree)</option>
+                                <option value="patricia">Árvore Patricia (Radix Compacta)</option>
+                            </optgroup>
+                            <optgroup label="Árvores Binárias Autoajustáveis / Probabilísticas">
+                                <option value="splay">Árvore Splay (Autoajustável)</option>
+                                <option value="treap">Árvore Treap (Tree + Heap)</option>
+                            </optgroup>
+                            <optgroup label="Estruturas Espaciais Multidimensionais">
+                                <option value="kdtree">KD-Tree 2D (Partição Espacial)</option>
+                            </optgroup>
+                            <optgroup label="Estruturas de Referência">
+                                <option value="avl">Árvore AVL (Estritamente Balanceada)</option>
+                                <option value="bst">BST Convencional (Sem Balanceamento)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label" for="inputVal1">Entrada de Dados</label>
+                        <input type="text" id="inputVal1" class="text-input" placeholder="Palavra / Chave">
+                    </div>
+
+                    <div id="inputVal2Group" class="control-group" style="display: none;">
+                        <label class="control-label" for="inputVal2">Parâmetro Secundário (Y / Prioridade)</label>
+                        <input type="text" id="inputVal2" class="text-input" placeholder="Y ou Prioridade">
+                    </div>
+
+                    <div class="btn-row">
+                        <button id="btnInsert" class="btn btn-primary">Inserir</button>
+                        <button id="btnSearch" class="btn btn-secondary">Buscar</button>
+                    </div>
+
+                    <div class="btn-row">
+                        <button id="btnRemove" class="btn btn-danger">Remover</button>
+                        <button id="btnRandom" class="btn btn-secondary">Aleatório</button>
+                    </div>
+
+                    <button id="btnClear" class="btn btn-secondary" style="margin-top: 4px;">Limpar Árvore</button>
+
+                    <!-- Cartão de Custos Computacionais da Estrutura Selecionada -->
+                    <div style="background: var(--bg-glass); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px;">
+                        <label class="control-label" style="margin-bottom: 6px; display: block;">Custos Teóricos da Estrutura</label>
+                        <div id="complexityCardContent" style="font-size: 11.5px; font-family: var(--font-mono); color: var(--text-muted); line-height: 1.6;">
+                            <!-- Preenchido dinamicamente pelo app.js -->
+                        </div>
+                    </div>
+
+                    <!-- Métricas Dinâmicas -->
+                    <div class="metrics-card">
+                        <div class="metric-item">
+                            <span class="metric-label">Total de Nós / Pontos</span>
+                            <span id="metricNodes" class="metric-value">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span id="metricAuxLabel" class="metric-label">Operações</span>
+                            <span id="metricAux" class="metric-value">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Log de Execução -->
+                    <div class="control-group">
+                        <label class="control-label">Histórico de Operações</label>
+                        <div id="operationLog" class="operation-log">
+                            <div class="log-entry">Pronto para operações.</div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Área Central do Canvas -->
+                <div class="canvas-viewport">
+                    <div id="standardCanvasContainer" class="tree-canvas-container">
+                        <div id="mainTreeSvg" style="width: 100%; height: 100%;"></div>
+                    </div>
+
+                    <!-- Visualização Dual para KD-Tree 2D -->
+                    <div id="kdtreeDualContainer" class="kdtree-dual-container">
+                        <div style="height: 100%; position: relative;">
+                            <div id="kdTreeSvg" style="width: 100%; height: 100%;"></div>
+                        </div>
+                        <div class="kdtree-spatial-panel">
+                            <label class="control-label">Plano Cartesiano 2D (Clique para adicionar pontos)</label>
+                            <div id="spatialCanvasContainer" style="width: 100%; height: 350px;"></div>
+                            <p style="font-size: 11px; color: var(--text-muted);">
+                                Linhas <span style="color: #EF4444; font-weight: bold;">Vermelhas</span> = Corte X | 
+                                Linhas <span style="color: #3B82F6; font-weight: bold;">Azuis</span> = Corte Y
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 2: RASTREAMENTO DOS 3 ESTADOS ESTRUTURAIS (Seção 3 do PDF) -->
+        <section id="threeStatesSection" class="view-section">
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card);">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h2 style="font-family: var(--font-display); font-size: 18px; color: var(--text-main);">Rastreamento dos 3 Estados Estruturais</h2>
+                        <p style="font-size: 12px; color: var(--text-muted);">Demonstração visual das transformações estruturais (Seção 3 do relatório técnico)</p>
+                    </div>
+                    <div style="width: 300px;">
+                        <select id="threeStatesSelect" class="select-input">
+                            <option value="trie">Árvore Trie (Poda de Ramos)</option>
+                            <option value="patricia">Árvore Patricia (Split & Merge)</option>
+                            <option value="splay">Árvore Splay (Autoajuste & Join)</option>
+                            <option value="treap">Árvore Treap (Rotações de Max-Heap)</option>
+                            <option value="kdtree">KD-Tree 2D (Poda de Hiperplanos 1-NN)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <p id="threeStatesDescription" style="font-size: 13px; color: var(--primary); font-weight: 500; margin-bottom: 16px;"></p>
+
+                <div class="three-states-grid">
+                    <div class="state-card">
+                        <div class="state-header">
+                            <span class="state-badge">Estado 1</span>
+                            <h3 class="state-title">Estrutura Inicial</h3>
+                        </div>
+                        <p id="state1Desc" class="state-desc"></p>
+                        <div id="state1Svg" class="state-preview-box"></div>
+                    </div>
+
+                    <div class="state-card">
+                        <div class="state-header">
+                            <span class="state-badge" style="color: var(--warning); background: rgba(245, 158, 11, 0.1);">Estado 2</span>
+                            <h3 class="state-title">Estado Intermediário</h3>
+                        </div>
+                        <p id="state2Desc" class="state-desc"></p>
+                        <div id="state2Svg" class="state-preview-box"></div>
+                    </div>
+
+                    <div class="state-card">
+                        <div class="state-header">
+                            <span class="state-badge" style="color: var(--success); background: rgba(16, 185, 129, 0.1);">Estado 3</span>
+                            <h3 class="state-title">Pós-Remoção / Reorganização</h3>
+                        </div>
+                        <p id="state3Desc" class="state-desc"></p>
+                        <div id="state3Svg" class="state-preview-box"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 3: TABELA COMPARATIVA DE CUSTOS COMPUTACIONAIS (Seção 4 do PDF) -->
+        <section id="complexitySection" class="view-section">
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card);">
+                <h2 style="font-family: var(--font-display); font-size: 18px; color: var(--text-main); margin-bottom: 6px;">Análise de Complexidade e Comparação Teórica</h2>
+                <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px;">
+                    Matriz comparativa de complexidade assintótica das operações fundamentais e consumo espacial (Seção 4).
+                </p>
+
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+                        <thead>
+                            <tr style="background: var(--bg-glass); border-bottom: 2px solid var(--border-color);">
+                                <th style="padding: 12px; font-weight: 700; color: var(--text-main);">Estrutura</th>
+                                <th style="padding: 12px; font-weight: 700; color: var(--text-main);">Busca (Médio / Pior)</th>
+                                <th style="padding: 12px; font-weight: 700; color: var(--text-main);">Inserção (Médio / Pior)</th>
+                                <th style="padding: 12px; font-weight: 700; color: var(--text-main);">Remoção (Médio / Pior)</th>
+                                <th style="padding: 12px; font-weight: 700; color: var(--text-main);">Complexidade Espacial</th>
+                                <th style="padding: 12px; font-weight: 700; color: var(--text-main);">Operação Especializada</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-family: var(--font-mono); color: var(--text-muted);">
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; font-weight: 700; color: #3B82F6; font-family: var(--font-sans);">Trie</td>
+                                <td style="padding: 12px;">O(L) / O(L)</td>
+                                <td style="padding: 12px;">O(L) / O(L)</td>
+                                <td style="padding: 12px;">O(L) / O(L)</td>
+                                <td style="padding: 12px;">O(N · L · Σ)</td>
+                                <td style="padding: 12px; font-family: var(--font-sans);">Autocomplete: O(P + K)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; font-weight: 700; color: #60A5FA; font-family: var(--font-sans);">Árvore Patricia</td>
+                                <td style="padding: 12px;">O(L) / O(L)</td>
+                                <td style="padding: 12px;">O(L) / O(L)</td>
+                                <td style="padding: 12px;">O(L) / O(L)</td>
+                                <td style="padding: 12px;">O(N · Σ) [Compactada]</td>
+                                <td style="padding: 12px; font-family: var(--font-sans);">Divisão de Aresta (Split): O(L)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; font-weight: 700; color: #8B5CF6; font-family: var(--font-sans);">Árvore Splay</td>
+                                <td style="padding: 12px;">O(log N) amort. / O(N)</td>
+                                <td style="padding: 12px;">O(log N) amort. / O(N)</td>
+                                <td style="padding: 12px;">O(log N) amort. / O(N)</td>
+                                <td style="padding: 12px;">O(N)</td>
+                                <td style="padding: 12px; font-family: var(--font-sans);">Autoajuste à Raiz: O(log N) amort.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; font-weight: 700; color: #F59E0B; font-family: var(--font-sans);">Árvore Treap</td>
+                                <td style="padding: 12px;">O(log N) prob. / O(N)</td>
+                                <td style="padding: 12px;">O(log N) prob. / O(N)</td>
+                                <td style="padding: 12px;">O(log N) prob. / O(N)</td>
+                                <td style="padding: 12px;">O(N)</td>
+                                <td style="padding: 12px; font-family: var(--font-sans);">Split & Merge: O(log N) prob.</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; font-weight: 700; color: #06B6D4; font-family: var(--font-sans);">KD-Tree (2D)</td>
+                                <td style="padding: 12px;">O(log N) / O(N)</td>
+                                <td style="padding: 12px;">O(log N) / O(N)</td>
+                                <td style="padding: 12px;">O(log N) / O(N)</td>
+                                <td style="padding: 12px;">O(N · K)</td>
+                                <td style="padding: 12px; font-family: var(--font-sans);">1-NN: O(log N) | Range: O(N^(1-1/K) + M)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px; font-weight: 700; color: #10B981; font-family: var(--font-sans);">Árvore AVL (Baseline)</td>
+                                <td style="padding: 12px;">O(log N) / O(log N)</td>
+                                <td style="padding: 12px;">O(log N) / O(log N)</td>
+                                <td style="padding: 12px;">O(log N) / O(log N)</td>
+                                <td style="padding: 12px;">O(N)</td>
+                                <td style="padding: 12px; font-family: var(--font-sans);">Balanceamento Rígido: FB ∈ {-1,0,1}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px; font-weight: 700; color: #EF4444; font-family: var(--font-sans);">BST Padrão (Baseline)</td>
+                                <td style="padding: 12px;">O(log N) / O(N)</td>
+                                <td style="padding: 12px;">O(log N) / O(N)</td>
+                                <td style="padding: 12px;">O(log N) / O(N)</td>
+                                <td style="padding: 12px;">O(N)</td>
+                                <td style="padding: 12px; font-family: var(--font-sans);">Sem Garantia de Altura</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 20px; font-size: 12px; color: var(--text-dim); line-height: 1.6;">
+                    * <strong>Legenda</strong>: <code>N</code> = quantidade de elementos; <code>L</code> = comprimento da string/chave; <code>Σ</code> = tamanho do alfabeto; <code>K</code> = número de dimensões (K=2); <code>P</code> = tamanho do prefixo; <code>M</code> = pontos retornados.
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 4: GALERIA DE GRÁFICOS CIENTÍFICOS -->
+        <section id="benchmarksSection" class="view-section">
+            <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card);">
+                <h2 style="font-family: var(--font-display); font-size: 18px; color: var(--text-main);">Gráficos Experimentais</h2>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
+                    Resultados médios obtidos após 10 execuções independentes para cada configuração (N = 100 a 100.000).
+                </p>
+
+                <div class="gallery-grid">
+                    <div class="gallery-card">
+                        <h4 style="font-size: 13.5px; color: var(--text-main);">Fig 1: Tempo de Inserção (Trie vs. Patricia)</h4>
+                        <img src="assets/fig1_trie_patricia_insercao.svg" alt="Fig 1">
+                    </div>
+                    <div class="gallery-card">
+                        <h4 style="font-size: 13.5px; color: var(--text-main);">Fig 2: Contagem de Nós Alocados</h4>
+                        <img src="assets/fig2_trie_patricia_nos.svg" alt="Fig 2">
+                    </div>
+                    <div class="gallery-card">
+                        <h4 style="font-size: 13.5px; color: var(--text-main);">Fig 3: Pior Caso da BST vs. Estruturas Balanceadas</h4>
+                        <img src="assets/fig3_pior_caso_ordenado.svg" alt="Fig 3">
+                    </div>
+                    <div class="gallery-card">
+                        <h4 style="font-size: 13.5px; color: var(--text-main);">Fig 4: Tempo sob 4 Distribuições de Entrada</h4>
+                        <img src="assets/fig4_insercao_4_distribuicoes.svg" alt="Fig 4">
+                    </div>
+                    <div class="gallery-card">
+                        <h4 style="font-size: 13.5px; color: var(--text-main);">Fig 5: Rotações Acumuladas na Inserção</h4>
+                        <img src="assets/fig6_rotacoes_acumuladas.svg" alt="Fig 5">
+                    </div>
+                    <div class="gallery-card">
+                        <h4 style="font-size: 13.5px; color: var(--text-main);">Fig 6: KD-Tree (Consultas 1-NN e Range Search)</h4>
+                        <img src="assets/fig7_kdtree_consultas.svg" alt="Fig 6">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Trabalho Prático Individual I — Algoritmos e Estruturas de Dados II | Publicado via GitHub Pages</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/structures/trie.js"></script>
+    <script src="js/structures/patricia.js"></script>
+    <script src="js/structures/splay_tree.js"></script>
+    <script src="js/structures/treap.js"></script>
+    <script src="js/structures/kd_tree.js"></script>
+    <script src="js/structures/bst.js"></script>
+    <script src="js/structures/avl_tree.js"></script>
+
+    <script src="js/presets/three_states_data.js"></script>
+    <script src="js/render/tree_renderer.js"></script>
+    <script src="js/render/spatial_2d_canvas.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
