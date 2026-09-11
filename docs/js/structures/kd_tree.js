@@ -59,6 +59,70 @@ class KDTreeVisual {
         };
     }
 
+    remove(x, y) {
+        x = Number(x);
+        y = Number(y);
+        let removido = false;
+
+        const encontrarMinimo = (no, eixoCorte, profundidade) => {
+            if (!no) return null;
+            let eixoAtual = profundidade % 2;
+            
+            if (eixoAtual === eixoCorte) {
+                if (!no.esq) return no;
+                return encontrarMinimo(no.esq, eixoCorte, profundidade + 1);
+            }
+
+            let esqMin = encontrarMinimo(no.esq, eixoCorte, profundidade + 1);
+            let dirMin = encontrarMinimo(no.dir, eixoCorte, profundidade + 1);
+            let res = no;
+
+            if (esqMin && esqMin.ponto[eixoCorte === 0 ? 'x' : 'y'] < res.ponto[eixoCorte === 0 ? 'x' : 'y']) res = esqMin;
+            if (dirMin && dirMin.ponto[eixoCorte === 0 ? 'x' : 'y'] < res.ponto[eixoCorte === 0 ? 'x' : 'y']) res = dirMin;
+
+            return res;
+        };
+
+        const removerRec = (no, px, py, profundidade) => {
+            if (!no) return null;
+
+            let eixo = profundidade % 2;
+
+            if (no.ponto.x === px && no.ponto.y === py) {
+                if (no.dir) {
+                    let minNo = encontrarMinimo(no.dir, eixo, profundidade + 1);
+                    no.ponto = { x: minNo.ponto.x, y: minNo.ponto.y };
+                    no.dir = removerRec(no.dir, minNo.ponto.x, minNo.ponto.y, profundidade + 1);
+                    removido = true;
+                } else if (no.esq) {
+                    let minNo = encontrarMinimo(no.esq, eixo, profundidade + 1);
+                    no.ponto = { x: minNo.ponto.x, y: minNo.ponto.y };
+                    no.dir = removerRec(no.esq, minNo.ponto.x, minNo.ponto.y, profundidade + 1);
+                    no.esq = null;
+                    removido = true;
+                } else {
+                    removido = true;
+                    return null;
+                }
+                return no;
+            }
+
+            let ptVal = eixo === 0 ? px : py;
+            let noVal = eixo === 0 ? no.ponto.x : no.ponto.y;
+
+            if (ptVal < noVal) {
+                no.esq = removerRec(no.esq, px, py, profundidade + 1);
+            } else {
+                no.dir = removerRec(no.dir, px, py, profundidade + 1);
+            }
+            return no;
+        };
+
+        this.raiz = removerRec(this.raiz, x, y, 0);
+        if (removido) this.totalPontos--;
+        return { sucesso: removido };
+    }
+
     _distanciaQuadrada(p1, p2) {
         let dx = p1.x - p2.x;
         let dy = p1.y - p2.y;

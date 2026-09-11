@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRandom = document.getElementById('btnRandom');
     const btnClear = document.getElementById('btnClear');
     const metricNodes = document.getElementById('metricNodes');
-    const metricOperations = document.getElementById('metricOperations');
     const metricAux = document.getElementById('metricAux');
     const metricAuxLabel = document.getElementById('metricAuxLabel');
     const operationLog = document.getElementById('operationLog');
@@ -191,17 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (currentStructureKey === 'trie' || currentStructureKey === 'patricia') {
             metricNodes.textContent = struct.totalNos;
-            metricOperations.textContent = struct.totalPalavras;
             metricAuxLabel.textContent = currentStructureKey === 'patricia' ? 'Splits de Aresta' : 'Palavras';
             metricAux.textContent = currentStructureKey === 'patricia' ? struct.totalSplits : struct.totalPalavras;
         } else if (currentStructureKey === 'kdtree') {
             metricNodes.textContent = struct.totalPontos;
-            metricOperations.textContent = struct.distanciasCalculadas;
             metricAuxLabel.textContent = 'Podas Espaciais';
             metricAux.textContent = struct.podasRealizadas;
         } else {
             metricNodes.textContent = struct.totalNos;
-            metricOperations.textContent = struct.totalRotacoes || 0;
             metricAuxLabel.textContent = 'Rotações';
             metricAux.textContent = struct.totalRotacoes || 0;
         }
@@ -285,13 +281,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Remoção
     btnRemove.addEventListener('click', () => {
         const val1 = inputVal1.value.trim();
+        const val2 = inputVal2.value.trim();
         if (!val1) return;
 
         const struct = structures[currentStructureKey];
         if (struct.remove) {
-            const res = struct.remove(val1);
-            logOperation(`Remoção de "${val1}": ${res.sucesso ? 'Concluída' : 'Não encontrado'}`);
+            let res;
+            if (currentStructureKey === 'kdtree') {
+                res = struct.remove(val1, val2 || 50);
+                logOperation(`Remoção de Ponto (${val1}, ${val2 || 50}): ${res.sucesso ? 'Concluída' : 'Não encontrado'}`);
+            } else {
+                res = struct.remove(val1);
+                logOperation(`Remoção de "${val1}": ${res.sucesso ? 'Concluída' : 'Não encontrado'}`);
+            }
             inputVal1.value = '';
+            if (inputVal2) inputVal2.value = '';
             updateView();
         } else {
             logOperation(`Remoção não aplicável para esta estrutura.`);
@@ -386,6 +390,61 @@ document.addEventListener('DOMContentLoaded', () => {
         if (estadoConfig.buscar && instancia.search) {
             instancia.search(estadoConfig.buscar);
         }
+    }
+
+    // Exportador Automático para o Relatório (Versão ZIP)
+    const btnExportAllSVGs = document.getElementById('btnExportAllSVGs');
+    if (btnExportAllSVGs) {
+        btnExportAllSVGs.addEventListener('click', async () => {
+            if (typeof JSZip === 'undefined') {
+                alert('A biblioteca JSZip não foi carregada. Verifique sua conexão com a internet.');
+                return;
+            }
+
+            const zip = new JSZip();
+            const trees = ['trie', 'patricia', 'splay', 'treap', 'kdtree'];
+            const originalValue = threeStatesSelect.value;
+            btnExportAllSVGs.textContent = 'Empacotando ZIP...';
+            btnExportAllSVGs.disabled = true;
+
+            for (let tree of trees) {
+                threeStatesSelect.value = tree;
+                renderThreeStatesView();
+                
+                // Extrai SVG com pequeno delay para garantir que renderizou
+                await new Promise(r => setTimeout(r, 150));
+                
+                const ids = ['state1Svg', 'state2Svg', 'state3Svg'];
+                for (let i = 0; i < ids.length; i++) {
+                    let svg = document.querySelector('#' + ids[i] + ' svg').outerHTML;
+                    if (!svg.includes('xmlns=')) {
+                        svg = svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+                    }
+                    zip.file(`${tree}_estado${i + 1}.svg`, svg);
+                }
+            }
+
+            threeStatesSelect.value = originalValue;
+            renderThreeStatesView();
+
+            try {
+                const blob = await zip.generateAsync({type:"blob"});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "Imagens_SVGs_Relatorio.zip";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('Arquivo ZIP com as 15 imagens gerado com sucesso! Salvo nos seus Downloads.');
+            } catch (err) {
+                alert('Erro ao gerar o ZIP: ' + err);
+            }
+
+            btnExportAllSVGs.textContent = 'Baixar 15 Imagens (Relatório)';
+            btnExportAllSVGs.disabled = false;
+        });
     }
 
     // Inicialização com árvore vazia

@@ -11,6 +11,10 @@
 
 void testarTrie() {
     Trie trie;
+    
+    assert(trie.size() == 0);
+    assert(trie.search("vazio") == false);
+    assert(trie.remove("vazio") == false);
 
     trie.insert("casa");
     trie.insert("casamento");
@@ -50,6 +54,10 @@ void testarTrie() {
 
 void testarPatricia() {
     PatriciaTree pat;
+    
+    assert(pat.size() == 0);
+    assert(pat.search("vazio") == false);
+    assert(pat.remove("vazio") == false);
 
     pat.insert("computador");
     pat.insert("computacao");
@@ -86,6 +94,10 @@ void testarPatricia() {
 
 void testarSplay() {
     SplayTree<int> splay;
+    
+    assert(splay.size() == 0);
+    assert(splay.search(10) == false);
+    assert(splay.remove(10) == false);
 
     std::vector<int> valores = {50, 30, 70, 20, 40, 60, 80};
     for (int v : valores) {
@@ -109,6 +121,10 @@ void testarSplay() {
 
 void testarTreap() {
     Treap<int> treap(12345);
+    
+    assert(treap.size() == 0);
+    assert(treap.search(10) == false);
+    assert(treap.remove(10) == false);
 
     std::vector<int> valores = {15, 10, 20, 5, 12, 18, 25};
     for (int v : valores) {
@@ -135,6 +151,13 @@ void testarTreap() {
 
 void testarKDTree() {
     KDTree<2> kd2;
+    
+    assert(kd2.size() == 0);
+    assert(kd2.search(Ponto<2>({0.0, 0.0})) == false);
+    assert(kd2.remove(Ponto<2>({0.0, 0.0})) == false);
+    bool emptyNearestFailed = false;
+    try { kd2.nearestNeighbor(Ponto<2>({0.0, 0.0})); } catch(...) { emptyNearestFailed = true; }
+    assert(emptyNearestFailed);
 
     Ponto<2> p1({3.0, 6.0});
     Ponto<2> p2({17.0, 15.0});
@@ -168,6 +191,9 @@ void testarKDTree() {
 void testarBaselines() {
     BST<int> bst;
     AVLTree<int> avl;
+    
+    assert(bst.size() == 0 && avl.size() == 0);
+    assert(bst.remove(10) == false && avl.remove(10) == false);
 
     for (int i = 1; i <= 10; ++i) {
         bst.insert(i);

@@ -115,6 +115,62 @@ private:
         }
     }
 
+    NoKD<K, TipoCoord>* encontrarMinimoAux(NoKD<K, TipoCoord>* no, int eixoCorte, int prof) {
+        if (!no) return nullptr;
+
+        int eixoAtual = prof % K;
+
+        if (eixoAtual == eixoCorte) {
+            if (!no->esq) return no;
+            return encontrarMinimoAux(no->esq, eixoCorte, prof + 1);
+        }
+
+        NoKD<K, TipoCoord>* esqMin = encontrarMinimoAux(no->esq, eixoCorte, prof + 1);
+        NoKD<K, TipoCoord>* dirMin = encontrarMinimoAux(no->dir, eixoCorte, prof + 1);
+        NoKD<K, TipoCoord>* res = no;
+
+        if (esqMin && esqMin->ponto[eixoCorte] < res->ponto[eixoCorte]) res = esqMin;
+        if (dirMin && dirMin->ponto[eixoCorte] < res->ponto[eixoCorte]) res = dirMin;
+
+        return res;
+    }
+
+    NoKD<K, TipoCoord>* removerAux(NoKD<K, TipoCoord>* no, const Ponto<K, TipoCoord>& pt, int prof, bool& removido) {
+        if (!no) return nullptr;
+
+        int eixo = prof % K;
+
+        if (no->ponto == pt) {
+            if (no->dir) {
+                NoKD<K, TipoCoord>* minNo = encontrarMinimoAux(no->dir, eixo, prof + 1);
+                no->ponto = minNo->ponto;
+                bool dummy = false;
+                no->dir = removerAux(no->dir, minNo->ponto, prof + 1, dummy);
+                removido = true;
+            } else if (no->esq) {
+                NoKD<K, TipoCoord>* minNo = encontrarMinimoAux(no->esq, eixo, prof + 1);
+                no->ponto = minNo->ponto;
+                bool dummy = false;
+                no->dir = removerAux(no->esq, minNo->ponto, prof + 1, dummy);
+                no->esq = nullptr;
+                removido = true;
+            } else {
+                delete no;
+                removido = true;
+                return nullptr;
+            }
+            return no;
+        }
+
+        if (pt[eixo] < no->ponto[eixo]) {
+            no->esq = removerAux(no->esq, pt, prof + 1, removido);
+        } else {
+            no->dir = removerAux(no->dir, pt, prof + 1, removido);
+        }
+
+        return no;
+    }
+
     void buscaIntervaloAux(NoKD<K, TipoCoord>* no, 
                            const Ponto<K, TipoCoord>& minPt, 
                            const Ponto<K, TipoCoord>& maxPt,
@@ -220,6 +276,15 @@ public:
 
     bool search(const Ponto<K, TipoCoord>& pt) const {
         return buscarAux(raiz, pt, 0);
+    }
+
+    bool remove(const Ponto<K, TipoCoord>& pt) {
+        bool removido = false;
+        raiz = removerAux(raiz, pt, 0, removido);
+        if (removido) {
+            totalPontos--;
+        }
+        return removido;
     }
 
     std::vector<Ponto<K, TipoCoord>> rangeSearch(const Ponto<K, TipoCoord>& minPt, const Ponto<K, TipoCoord>& maxPt) const {
